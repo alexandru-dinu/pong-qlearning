@@ -21,7 +21,7 @@ def main(args):
 		Q = world.qlearning()
 		print("Training done!")
 
-		# save weights if needed
+		# save Q-values if needed
 		if args.filename != "":
 			pickle.dump(Q, open(args.filename, "wb"))
 			print("Saved Q in ", args.filename)

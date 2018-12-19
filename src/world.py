@@ -402,7 +402,11 @@ class World:
 			r = self.get_reward_description(state, num_iter)
 			stats[r] += 1
 
-			print("Episode %6d / %6d" % (train_ep, self.args.train_episodes))
+			print(
+				"[ Episode %6d / %6d ]" % (train_ep, self.args.train_episodes),
+				"[ stats:", stats, "]",
+				"[ w/l: %.5f ]" % (round(stats['win'] / stats['lose'], 5))
+			)
 			train_scores.append(score)
 			num_states.append(len(Q))
 
@@ -416,8 +420,6 @@ class World:
 
 				eval_scores.append(avg_score / self.args.eval_episodes)
 		# end for each training episode
-
-		print(stats)
 
 		# plot scores if needed
 		if self.args.plot_scores:
