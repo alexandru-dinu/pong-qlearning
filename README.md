@@ -32,7 +32,9 @@ To train with custom parameters, omit the `--load --filename <file>` args.
 You can also use `--plot_scores` to plot train and eval scores, after training.
 
 Using `--filename <file>` (without `--load`) will save final Q-values to the specified file,
-as a pickle dictionary.
+as a pickle dictionary. 
+
+Pickle file format: `<w>_<h>_<paddle_len>_<eps>_<lr>_<train_episodes>_<agent_strategy>_<opponent_strategy>`
 
 ## Results
 
