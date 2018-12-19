@@ -1,105 +1,37 @@
-# Dinu Alexandru, 342C4
-
+import matplotlib.pyplot as plt
 import numpy as np
-import pygame
-import argparse
-import pickle
-from matplotlib import pyplot as plt
 
-X, Y = 0, 1
+from game import *
+
 AGENT, OPPONENT, BALL = 0, 1, 2
 WINDOW_WIDTH, WINDOW_HEIGHT = 640, 480
 
 MOVE_KEYS = {
-	pygame.K_UP: (OPPONENT, -1),
+	pygame.K_UP  : (OPPONENT, -1),
 	pygame.K_DOWN: (OPPONENT, 1),
-	pygame.K_w: (AGENT, -1),
-	pygame.K_s: (AGENT, 1)
+	pygame.K_w   : (AGENT, -1),
+	pygame.K_s   : (AGENT, 1)
 }
 
 DIRECTIONS = {
-	'top_left': [-1, -1],
+	'top_left' : [-1, -1],
 	'top_right': [1, -1],
-	'bot_left': [-1, 1],
+	'bot_left' : [-1, 1],
 	'bot_right': [1, 1]
 }
 
-
 REWARDS = {
-	'lose': -1,
-	'win': 1,
+	'lose'   : -1,
+	'win'    : 1,
 	'default': 0
 }
-ACTIONS = ["UP", "DOWN", "STAY"]
 
 # how paddle's y coord moves, depending on the action
-ACTION_EFFECTS = {
-	"UP": -1,
+ACTIONS = {
+	"UP"  : -1,
 	"DOWN": 1,
 	"STAY": 0
 }
-
-
-def random_choice(lst):
-	r = np.random.randint(len(lst))
-	return lst[r]
-
-
-class Ball:
-	VELOCITY = 1
-
-	def __init__(self, pos):
-		# set initial direction to a random one
-		self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
-
-		self.init_pos = pos
-
-		# underlying rectangle representing the ball
-		# the position is given by Rect members (.x, .y)
-		self.rect = pygame.Rect(pos[X], pos[Y], 1, 1)
-
-	def draw(self, canvas):
-		pygame.draw.rect(canvas, pygame.Color("white"), self.rect)
-
-	def set_position(self, nx, ny):
-		self.rect.x = nx
-		self.rect.y = ny
-
-	def get_position(self):
-		return self.rect.x, self.rect.y
-
-	def in_paddle_area(self, paddle):
-		py = paddle.get_position()
-		return py <= self.rect.y <= py + Paddle.LENGTH
-
-	def reset(self):
-		self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
-		self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, 1)
-
-
-class Paddle:
-	VELOCITY = 1
-	LENGTH = 5
-
-	def __init__(self, pos):
-		self.init_pos = pos
-		self.direction = 0
-
-		# position is given by rect member (.x, .y)
-		self.rect = pygame.Rect(pos[X], pos[Y], 1, Paddle.LENGTH)
-
-	def set_position(self, ny):
-		self.rect.y = ny
-
-	def get_position(self):
-		return self.rect.y
-
-	def draw(self, canvas):
-		pygame.draw.rect(canvas, pygame.Color("green"), self.rect)
-
-	def reset(self):
-		self.direction = 0
-		self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, Paddle.LENGTH)
 
 
 class World:
@@ -116,7 +48,7 @@ class World:
 		# where the drawing takes place (small surface)
 		self.canvas = pygame.surface.Surface((self.canvas_width, self.canvas_height))
 
-		pygame.display.set_caption('Q-Learning Pong')
+		pygame.display.set_caption('Pong Q-Learning')
 
 		font = pygame.font.SysFont('Arial', 12)
 		self.text_params = font.render(
@@ -143,15 +75,13 @@ class World:
 		]
 
 		# init ball
-		ball_pos = (self.canvas_width // 2, self.canvas_height // 2)
-		self.ball = Ball(ball_pos)
+		self.ball = Ball((self.canvas_width // 2, self.canvas_height // 2))
 
 		# init paddles
 		paddle_y = (self.canvas_height - Paddle.LENGTH) // 2
-		p1 = (0, paddle_y)
-		p2 = (self.canvas_width - 1, paddle_y)
-
-		self.paddles = [Paddle(p1), Paddle(p2)]
+		self.paddles = [
+			Paddle((0, paddle_y), "green"), Paddle((self.canvas_width - 1, paddle_y), "red")
+		]
 
 	def handle_ball_movement(self, cx, cy):
 		# cx, cy = self.ball.rect.x, self.ball.rect.y
@@ -215,91 +145,24 @@ class World:
 
 		return agent_eval_strategy, opponent_eval_strategy
 
-	def final_show(self, Q):
-		score = num_iter = 0
+	def get_state(self, initial=False):
+		if initial:
+			self.game_reset()
 
-		agent_eval_strategy, opponent_eval_strategy = self.get_eval_strategies()
-
-		state = self.get_initial_state()
-
-		game_sleep = 1000 // self.args.fps
-
-		text_offset = 15
-
-		while not self.is_final_state(state, num_iter):
-			p_actions = self.get_legal_actions(AGENT, state)
-			o_actions = self.get_legal_actions(OPPONENT, state)
-
-			p_act = self.choose_action_by_strategy(
-				AGENT, agent_eval_strategy, Q, state, p_actions
-			)
-			o_act = self.choose_action_by_strategy(
-				OPPONENT, opponent_eval_strategy, Q, state, o_actions
-			)
-
-			# -------------------------------------------------------
-			py, oy, (bx, by) = state
-			self.ball.set_position(bx, by)
-			self.paddles[AGENT].set_position(py)
-			self.paddles[OPPONENT].set_position(oy)
-
-			self.canvas.fill(pygame.Color("black"))
-			self.ball.draw(self.canvas)
-
-			for paddle in self.paddles:
-				paddle.draw(self.canvas)
-
-			self.window.blit(
-				pygame.transform.scale(self.canvas, (WINDOW_WIDTH, WINDOW_HEIGHT)),
-				(0, 0)
-			)
-
-			for i, tp in enumerate(self.text_params):
-				self.window.blit(tp, (WINDOW_WIDTH // 2 - 100, text_offset * (i + 1)))
-
-			pygame.display.update()
-
-			pygame.time.delay(game_sleep)
-			# -------------------------------------------------------
-
-			state, reward = self.apply_actions(state, p_act, o_act, num_iter)
-			score += reward
-			num_iter += 1
-
-		print(self.get_reward_description(state, num_iter))
-
-	def get_initial_state(self):
-		self.game_reset()
-
-		state = (
+		return (
 			self.paddles[AGENT].get_position(),
 			self.paddles[OPPONENT].get_position(),
 			self.ball.get_position()
 		)
 
-		return state
-
-	def get_state(self):
-		state = (
-			self.paddles[AGENT].get_position(),
-			self.paddles[OPPONENT].get_position(),
-			self.ball.get_position()
-		)
-
-		return state
-
-	def make_q_state(self, state):
-		_state = (state[AGENT], state[BALL])
-
-		return _state
+	@staticmethod
+	def make_q_state(state):
+		return state[AGENT], state[BALL]
 
 	def is_final_state(self, state, num_iter):
 		bx, _ = state[BALL]
 
-		if (num_iter >= self.args.max_iter) or (bx <= 0) or (bx >= self.canvas_width):
-			return True
-
-		return False
+		return (num_iter >= self.args.max_iter) or (bx <= 0) or (bx >= self.canvas_width)
 
 	def get_reward_description(self, state, num_iter):
 		bx, _ = state[BALL]
@@ -337,10 +200,10 @@ class World:
 
 		# move paddles according to action
 		agent_y = self.handle_paddle_movement(
-			self.paddles[AGENT], ACTION_EFFECTS[action_agent]
+			self.paddles[AGENT], ACTIONS[action_agent]
 		)
 		opponent_y = self.handle_paddle_movement(
-			self.paddles[OPPONENT], ACTION_EFFECTS[action_opponent]
+			self.paddles[OPPONENT], ACTIONS[action_opponent]
 		)
 
 		self.paddles[AGENT].set_position(agent_y)
@@ -349,8 +212,8 @@ class World:
 		next_state = (agent_y, opponent_y, next_ball)
 
 		if self.is_final_state(next_state, num_iter):
-			rd = self.get_reward_description(next_state, num_iter)
-			reward = REWARDS.get(rd, 0)
+			r = self.get_reward_description(next_state, num_iter)
+			reward = REWARDS.get(r, 0)
 
 		return next_state, reward
 
@@ -374,15 +237,13 @@ class World:
 
 			# spoof state
 			state = (oy, py, (bx, by))
-		# ---------
 
 		# store in Q my part of the state
 		my_state = self.make_q_state(state)
 		v = {a: Q.get((my_state, a), 0) for a in legal_actions}
 
-		best_act = max(v.keys(), key=(lambda k: v[k]))
-
-		return best_act
+		# best action
+		return max(v.keys(), key=(lambda k: v[k]))
 
 	def get_perfect_action(self, player_idx, state):
 		paddle_y = state[player_idx]
@@ -430,7 +291,7 @@ class World:
 
 		agent_eval_strategy, opponent_eval_strategy = self.get_eval_strategies()
 
-		state = self.get_initial_state()
+		state = self.get_state(initial=True)
 
 		while not self.is_final_state(state, num_iter):
 			p_actions = self.get_legal_actions(AGENT, state)
@@ -469,7 +330,7 @@ class World:
 		plt.show()
 
 		plt.xlabel("Episode")
-		plt.ylabel("size of Q")
+		plt.ylabel("Q size")
 
 		plt.plot(
 			np.linspace(self.args.eval_every, self.args.train_episodes, len(num_states)),
@@ -489,15 +350,15 @@ class World:
 		num_states = []
 
 		stats = {
-			'win': 0,
-			'lose': 0,
+			'win'    : 0,
+			'lose'   : 0,
 			'default': 0
 		}
 
 		for train_ep in range(1, self.args.train_episodes + 1):
 			score = 0
 			num_iter = 0
-			state = self.get_initial_state()
+			state = self.get_state(initial=True)
 
 			while not self.is_final_state(state, num_iter):
 				# choose one of the legal actions
@@ -538,8 +399,8 @@ class World:
 			# end episode loop
 
 			# record stats for current episode
-			rd = self.get_reward_description(state, num_iter)
-			stats[rd] += 1
+			r = self.get_reward_description(state, num_iter)
+			stats[r] += 1
 
 			print("Episode %6d / %6d" % (train_ep, self.args.train_episodes))
 			train_scores.append(score)
@@ -547,13 +408,9 @@ class World:
 
 			# evaluate policy
 			if train_ep % self.args.eval_every == 0:
-				# TODO: eval play
-				# self.final_show(Q)
-				# TODO
-
 				avg_score = .0
 
-				for i in range(args.eval_episodes):
+				for i in range(self.args.eval_episodes):
 					score = self.play_game(Q)
 					avg_score += score
 
@@ -561,115 +418,57 @@ class World:
 		# end for each training episode
 
 		print(stats)
+
 		# plot scores if needed
-		if args.plot_scores:
+		if self.args.plot_scores:
 			self.plot_scores(train_scores, eval_scores, num_states)
 
 		return Q
 
-	# Q-LEARNING ---------------------------------------------------------------
+	def final_show(self, Q):
+		score = num_iter = 0
 
+		agent_eval_strategy, opponent_eval_strategy = self.get_eval_strategies()
 
-def main(args):
-	Ball.VELOCITY = args.velocity
-	Paddle.VELOCITY = args.velocity
-	Paddle.LENGTH = args.paddle_length
+		state = self.get_state(initial=True)
 
-	world = World(args)
+		game_sleep = 1000 // self.args.fps
 
-	# load saved weights
-	if args.load:
-		Q = pickle.load(open(args.filename, "rb"))
-		world.final_show(Q)
-	
-	# train
-	else:
-		Q = world.qlearning()
-		print("Training done!")
+		text_offset = 15
 
-		# save weights if needed
-		if args.filename != "":
-			pickle.dump(Q, open(args.filename, "wb"))
-			print("Saved Q in ", args.filename)
+		while not self.is_final_state(state, num_iter):
+			p_act = self.choose_action_by_strategy(
+				AGENT, agent_eval_strategy, Q, state, self.get_legal_actions(AGENT, state)
+			)
+			o_act = self.choose_action_by_strategy(
+				OPPONENT, opponent_eval_strategy, Q, state, self.get_legal_actions(OPPONENT, state)
+			)
 
-		# show final game if needed
-		if args.final_show:
-			input("Press any key to play game...")
-			world.final_show(Q)
+			py, oy, (bx, by) = state
+			self.ball.set_position(bx, by)
+			self.paddles[AGENT].set_position(py)
+			self.paddles[OPPONENT].set_position(oy)
 
+			self.canvas.fill(pygame.Color("black"))
+			self.ball.draw(self.canvas)
 
-def parse_args():
-	argparser = argparse.ArgumentParser()
+			for paddle in self.paddles:
+				paddle.draw(self.canvas)
 
-	# game params
-	argparser.add_argument(
-		'--canvas_size', dest='canvas_size', nargs=2, default=(32, 24), type=int
-	)
-	argparser.add_argument(
-		'--paddle_length', dest='paddle_length', default=7, type=int
-	)
-	argparser.add_argument(
-		'--velocity', dest='velocity', default=1, type=int
-	)
-	argparser.add_argument(
-		'--filename', dest='filename', default="", type=str
-	)
-	argparser.add_argument(
-		'--load', dest='load', action="store_true"
-	)
+			self.window.blit(
+				pygame.transform.scale(self.canvas, (WINDOW_WIDTH, WINDOW_HEIGHT)),
+				(0, 0)
+			)
 
-	# qlearning params
-	argparser.add_argument(
-		'--max_iter', dest='max_iter', default=1000, type=int
-	)
-	argparser.add_argument(
-		'--learning_rate', dest='learning_rate', default=0.3, type=float
-	)
-	argparser.add_argument(
-		'--discount', dest='discount', default=0.99, type=float
-	)
-	argparser.add_argument(
-		'--epsilon', dest='epsilon', default=0.05, type=float
-	)
-	argparser.add_argument(
-		'--alpha', dest='alpha', default=1.0, type=float
-	)
-	argparser.add_argument(
-		'--train_episodes', dest='train_episodes', default=1000, type=int
-	)
-	argparser.add_argument(
-		'--eval_episodes', dest='eval_episodes', default=10, type=int
-	)
-	argparser.add_argument(
-		'--eval_every', dest='eval_every', default=10, type=int
-	)
-	argparser.add_argument(
-		'--plot', dest='plot_scores', action="store_true"
-	)
-	argparser.add_argument(
-		'--final_show', dest='final_show', action="store_true"
-	)
-	argparser.add_argument(
-		'--fps', dest='fps', default=20, type=int
-	)
+			for i, tp in enumerate(self.text_params):
+				self.window.blit(tp, (WINDOW_WIDTH // 2 - 100, text_offset * (i + 1)))
 
-	# training strategies
-	argparser.add_argument(
-		'--agent_strategy', dest='agent_strategy', default="eps_greedy", type=str
-	)
-	argparser.add_argument(
-		'--choose_unexplored_first', dest='choose_unexplored_first', action="store_true"
-	)
-	argparser.add_argument(
-		'--opponent_strategy', dest='opponent_strategy', default="random", type=str
-	)
-	argparser.add_argument(
-		'--mirror', dest='mirror_actions', action="store_true"
-	)
+			pygame.display.update()
 
-	return argparser.parse_args()
+			pygame.time.delay(game_sleep)
 
+			state, reward = self.apply_actions(state, p_act, o_act, num_iter)
+			score += reward
+			num_iter += 1
 
-if __name__ == '__main__':
-	args = parse_args()
-	main(args)
+		print(self.get_reward_description(state, num_iter))
