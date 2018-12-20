@@ -405,7 +405,7 @@ class World:
 			print(
 				"[ Episode %6d / %6d ]" % (train_ep, self.args.train_episodes),
 				"[ stats:", stats, "]",
-				"[ w/l: %.5f ]" % (round(stats['win'] / stats['lose'], 5))
+				"[ w/l: %.5f ]" % (np.inf if stats['lose'] == 0 else round(stats['win'] / stats['lose'], 5))
 			)
 			train_scores.append(score)
 			num_states.append(len(Q))
