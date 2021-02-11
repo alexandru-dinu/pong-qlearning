@@ -30,7 +30,7 @@ python src/main.py \
 	--max_iter 1000 \
 	--agent_strategy eps_greedy \
 	--opponent_strategy almost_perfect --alpha 0.8 \
-	--load --filename saved_qs/32_24_7_003_07_50k_eg_ap_08.p
+	--load --filename q-values/32_24_7_003_07_50k_eg_ap_08.p
 ```
 
 To train with custom parameters, omit the `--load --filename <file>` args.
