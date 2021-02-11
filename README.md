@@ -1,11 +1,17 @@
-# Pong Q-Learning
+# Pong Q-learning
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+Simple [Q-learning](https://en.wikipedia.org/wiki/Q-learning) agent for [pong](https://en.wikipedia.org/wiki/Pong).
+
+## Structure
 
 ```
 src
-├── game.py     # game logic (using pygame)
-├── main.py     # parse args and run
-├── utils.py    # useful stuff
-└── world.py    # main module: Q-Learning + game interactions
+├── game.py  # game logic (using pygame)
+├── main.py  # parse args and run
+├── utils.py # useful stuff
+└── world.py # main module: Q-learning + game interactions
 ```
 
 ## Usage
@@ -34,7 +40,10 @@ You can also use `--plot_scores` to plot train and eval scores, after training.
 Using `--filename <file>` (without `--load`) will save final Q-values to the specified file,
 as a pickle dictionary.
 
-Pickle file format: `<w>_<h>_<paddle_len>_<eps>_<lr>_<train_episodes>_<agent_strategy>_<opponent_strategy>`
+Pickle file format:
+```
+<w>_<h>_<paddle_len>_<eps>_<lr>_<train_episodes>_<agent_strategy>_<opponent_strategy>
+```
 
 ## Results
 

@@ -3,10 +3,10 @@ import pygame
 from utils import random_choice
 
 DIRECTIONS = {
-	'top_left' : [-1, -1],
-	'top_right': [1, -1],
-	'bot_left' : [-1, 1],
-	'bot_right': [1, 1]
+    "top_left": [-1, -1],
+    "top_right": [1, -1],
+    "bot_left": [-1, 1],
+    "bot_right": [1, 1],
 }
 
 # accessing position as tuple
@@ -14,58 +14,58 @@ X, Y = 0, 1
 
 
 class Ball:
-	VELOCITY = 1
+    VELOCITY = 1
 
-	def __init__(self, pos):
-		# set initial direction to a random one
-		self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
+    def __init__(self, pos):
+        # set initial direction to a random one
+        self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
 
-		self.init_pos = pos
+        self.init_pos = pos
 
-		# underlying rectangle representing the ball
-		# the position is given by Rect members (.x, .y)
-		self.rect = pygame.Rect(pos[X], pos[Y], 1, 1)
+        # underlying rectangle representing the ball
+        # the position is given by Rect members (.x, .y)
+        self.rect = pygame.Rect(pos[X], pos[Y], 1, 1)
 
-	def draw(self, canvas):
-		pygame.draw.rect(canvas, pygame.Color("white"), self.rect)
+    def draw(self, canvas):
+        pygame.draw.rect(canvas, pygame.Color("white"), self.rect)
 
-	def set_position(self, nx, ny):
-		self.rect.x = nx
-		self.rect.y = ny
+    def set_position(self, nx, ny):
+        self.rect.x = nx
+        self.rect.y = ny
 
-	def get_position(self):
-		return self.rect.x, self.rect.y
+    def get_position(self):
+        return self.rect.x, self.rect.y
 
-	def in_paddle_area(self, paddle):
-		py = paddle.get_position()
-		return py <= self.rect.y <= py + Paddle.LENGTH
+    def in_paddle_area(self, paddle):
+        py = paddle.get_position()
+        return py <= self.rect.y <= py + Paddle.LENGTH
 
-	def reset(self):
-		self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
-		self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, 1)
+    def reset(self):
+        self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
+        self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, 1)
 
 
 class Paddle:
-	VELOCITY = 1
-	LENGTH = 5
+    VELOCITY = 1
+    LENGTH = 5
 
-	def __init__(self, pos, color="green"):
-		self.init_pos = pos
-		self.direction = 0
-		self.color = color
+    def __init__(self, pos, color="green"):
+        self.init_pos = pos
+        self.direction = 0
+        self.color = color
 
-		# position is given by rect member (.x, .y)
-		self.rect = pygame.Rect(pos[X], pos[Y], 1, Paddle.LENGTH)
+        # position is given by rect member (.x, .y)
+        self.rect = pygame.Rect(pos[X], pos[Y], 1, Paddle.LENGTH)
 
-	def set_position(self, ny):
-		self.rect.y = ny
+    def set_position(self, ny):
+        self.rect.y = ny
 
-	def get_position(self):
-		return self.rect.y
+    def get_position(self):
+        return self.rect.y
 
-	def draw(self, canvas):
-		pygame.draw.rect(canvas, pygame.Color(self.color), self.rect)
+    def draw(self, canvas):
+        pygame.draw.rect(canvas, pygame.Color(self.color), self.rect)
 
-	def reset(self):
-		self.direction = 0
-		self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, Paddle.LENGTH)
+    def reset(self):
+        self.direction = 0
+        self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, Paddle.LENGTH)
