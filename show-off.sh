@@ -13,3 +13,4 @@ python src/main.py \
 	--max_iter 1000 \
 	--agent_strategy eps_greedy \
 	--opponent_strategy almost_perfect --alpha 0.8 \
+	--final_show

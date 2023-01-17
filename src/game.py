@@ -1,6 +1,5 @@
+import numpy as np
 import pygame
-
-from utils import random_choice
 
 DIRECTIONS = {
     "top_left": [-1, -1],
@@ -8,6 +7,11 @@ DIRECTIONS = {
     "bot_left": [-1, 1],
     "bot_right": [1, 1],
 }
+
+
+def random_direction():
+    return DIRECTIONS[np.random.choice(list(DIRECTIONS.keys()))]
+
 
 # accessing position as tuple
 X, Y = 0, 1
@@ -17,9 +21,7 @@ class Ball:
     VELOCITY = 1
 
     def __init__(self, pos):
-        # set initial direction to a random one
-        self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
-
+        self.direction = random_direction()
         self.init_pos = pos
 
         # underlying rectangle representing the ball
@@ -41,7 +43,7 @@ class Ball:
         return py <= self.rect.y <= py + Paddle.LENGTH
 
     def reset(self):
-        self.direction = DIRECTIONS[random_choice(list(DIRECTIONS.keys()))]
+        self.direction = random_direction()
         self.rect = pygame.Rect(self.init_pos[X], self.init_pos[Y], 1, 1)
 
 

@@ -10,7 +10,6 @@ Simple [Q-learning](https://en.wikipedia.org/wiki/Q-learning) agent for [pong](h
 src
 ├── game.py  # game logic (using pygame)
 ├── main.py  # parse args and run
-├── utils.py # useful stuff
 └── world.py # main module: Q-learning + game interactions
 ```
 
@@ -40,7 +39,7 @@ You can also use `--plot_scores` to plot train and eval scores, after training.
 Using `--filename <file>` (without `--load`) will save final Q-values to the specified file,
 as a pickle dictionary.
 
-Pickle file format:
+Pickle file naming convention:
 ```
 <w>_<h>_<paddle_len>_<eps>_<lr>_<train_episodes>_<agent_strategy>_<opponent_strategy>
 ```

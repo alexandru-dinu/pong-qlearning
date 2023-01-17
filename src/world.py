@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pygame
 
-from game import *
+from game import Ball, Paddle, X, Y
 
 AGENT, OPPONENT, BALL = 0, 1, 2
 WINDOW_WIDTH, WINDOW_HEIGHT = 640, 480
@@ -51,9 +52,7 @@ class World:
                 True,
                 pygame.Color("white"),
             ),
-            font.render(
-                "paddle_length = {}".format(Paddle.LENGTH), True, pygame.Color("white")
-            ),
+            font.render("paddle_length = {}".format(Paddle.LENGTH), True, pygame.Color("white")),
             font.render(
                 "eps = {} / lr = {} / gamma = {} / max_iter = {}".format(
                     self.args.epsilon,
@@ -175,9 +174,7 @@ class World:
     def is_final_state(self, state, num_iter):
         bx, _ = state[BALL]
 
-        return (
-            (num_iter >= self.args.max_iter) or (bx <= 0) or (bx >= self.canvas_width)
-        )
+        return (num_iter >= self.args.max_iter) or (bx <= 0) or (bx >= self.canvas_width)
 
     def get_reward_description(self, state, num_iter):
         bx, _ = state[BALL]
@@ -214,12 +211,8 @@ class World:
         self.ball.set_position(nx, ny)
 
         # move paddles according to action
-        agent_y = self.handle_paddle_movement(
-            self.paddles[AGENT], ACTIONS[action_agent]
-        )
-        opponent_y = self.handle_paddle_movement(
-            self.paddles[OPPONENT], ACTIONS[action_opponent]
-        )
+        agent_y = self.handle_paddle_movement(self.paddles[AGENT], ACTIONS[action_agent])
+        opponent_y = self.handle_paddle_movement(self.paddles[OPPONENT], ACTIONS[action_opponent])
 
         self.paddles[AGENT].set_position(agent_y)
         self.paddles[OPPONENT].set_position(opponent_y)
@@ -237,10 +230,10 @@ class World:
             unexplored = [a for a in legal_actions if (state, a) not in Q]
 
             if unexplored:
-                return random_choice(unexplored)
+                return np.random.choice(unexplored)
 
         if np.random.uniform(0, 1) <= self.args.epsilon:
-            return random_choice(legal_actions)
+            return np.random.choice(legal_actions)
         else:
             return self.get_best_action(Q, state, legal_actions)
 
@@ -288,7 +281,7 @@ class World:
         if np.random.uniform(0, 1) <= self.args.alpha:
             return self.get_perfect_action(player_idx, state)
         else:
-            return random_choice(legal_actions)
+            return np.random.choice(legal_actions)
 
     def choose_action_by_strategy(self, player_idx, strategy, Q, state, actions):
         if strategy == "greedy":
@@ -299,7 +292,7 @@ class World:
             return self.get_almost_perfect_action(player_idx, state, actions)
 
         # strategy == random
-        return random_choice(actions)
+        return np.random.choice(actions)
 
     def play_game(self, Q):
         score = num_iter = 0
@@ -312,9 +305,7 @@ class World:
             p_actions = self.get_legal_actions(AGENT, state)
             o_actions = self.get_legal_actions(OPPONENT, state)
 
-            p_act = self.choose_action_by_strategy(
-                AGENT, agent_eval_strategy, Q, state, p_actions
-            )
+            p_act = self.choose_action_by_strategy(AGENT, agent_eval_strategy, Q, state, p_actions)
             o_act = self.choose_action_by_strategy(
                 OPPONENT, opponent_eval_strategy, Q, state, o_actions
             )
@@ -339,9 +330,7 @@ class World:
 
         # eval
         plt.plot(
-            np.linspace(
-                self.args.eval_every, self.args.train_episodes, len(eval_scores)
-            ),
+            np.linspace(self.args.eval_every, self.args.train_episodes, len(eval_scores)),
             eval_scores,
             linewidth=2.0,
             color="red",
@@ -353,9 +342,7 @@ class World:
         plt.ylabel("Q size")
 
         plt.plot(
-            np.linspace(
-                self.args.eval_every, self.args.train_episodes, len(num_states)
-            ),
+            np.linspace(self.args.eval_every, self.args.train_episodes, len(num_states)),
             num_states,
             linewidth=1.0,
             color="green",
@@ -428,11 +415,7 @@ class World:
                 stats,
                 "]",
                 "[ w/l: %.5f ]"
-                % (
-                    np.inf
-                    if stats["lose"] == 0
-                    else round(stats["win"] / stats["lose"], 5)
-                ),
+                % (np.inf if stats["lose"] == 0 else round(stats["win"] / stats["lose"], 5)),
             )
             train_scores.append(score)
             num_states.append(len(Q))
